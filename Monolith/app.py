@@ -22,15 +22,43 @@ class App:
         print("Welcome to log analyser")
         while True:
             print(self.show_menu())
-            choice = int(input("Enter your choice: "))
-            self.actions[choice]()
+            choice = int(input("Enter your choice:"))
+
+            gen = self.actions[choice]()
+            item = next(gen)
+
+            while True:
+                print(item)
+
+                if type(item) is str and item.endswith(":"):
+                    user_input = input()
+                    try:
+                        item = gen.send(user_input)
+                    except StopIteration:
+                        break
+                else:
+                    try:
+                        item = next(gen)
+                    except StopIteration:
+                        break
 
     def show_all(self):
-        with open(self.log_path, 'r') as f:
-            print(f.read())
+        with open(self.log_path, 'r') as file:
+            yield file.read()
 
-    def show_category(self, category):
-        pass
+    def show_category(self):
+        category = yield "Enter category of logs you want to see:"
+        with open(self.log_path, 'r') as file:
+            category_lines = str
+            for line in file:
+                if re.match(fr'^{re.escape(category)}\S',line):
+                    category_lines += line + '\n'
+
+            if category_lines == str:
+                return "No logs found for that category."
+            else:
+                return category_lines
+
 
     def show_filter(self, what):
         pass
