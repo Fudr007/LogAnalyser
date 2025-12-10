@@ -14,7 +14,7 @@ class App:
             1: self.show_all,
             2: self.show_category,
             3: self.show_filter,
-            4: self.show_some,
+            4: self.show_by_some,
             5: self.exit
         }
 
@@ -48,23 +48,56 @@ class App:
 
     def show_category(self):
         category = yield "Enter category of logs you want to see:"
+        if category == "":
+            return "No category entered."
         with open(self.log_path, 'r') as file:
-            category_lines = str
+            category_lines = "\n"
             for line in file:
-                if re.match(fr'^{re.escape(category)}\S',line):
-                    category_lines += line + '\n'
+                if re.match(fr'^{re.escape(category)}[\s\S]*',line):
+                    category_lines += line
 
-            if category_lines == str:
-                return "No logs found for that category."
+            if category_lines == "\n":
+                yield "No logs found for that category."
             else:
-                return category_lines
+                yield category_lines
 
+    def show_filter(self):
+        filter = yield f"Enter filter for which you want to search:"
+        if filter == "":
+            yield "No filter entered."
+        with open(self.log_path, 'r') as file:
+            filter_lines = "\n"
+            for line in file:
+                if re.search(filter,line):
+                    filter_lines += line
 
-    def show_filter(self, what):
-        pass
+            if filter_lines == "\n":
+                yield "No logs found for that category."
+            else:
+                yield filter_lines
 
-    def show_some(self, how_many):
-        pass
+    def show_by_some(self):
+        how_many = yield "How many lines at once do you want to see:"
+        try:
+            how_many = int(how_many)
+            if how_many <= 0:
+                raise ValueError()
+        except ValueError:
+            yield "Invalid number of lines, enter a valid number."
+        with open(self.log_path, 'r') as file:
+            counter = 1
+            now_lines = "\n"
+            for line in file:
+                now_lines += line
+                counter += 1
+                if counter > how_many:
+                    yield now_lines
+                    a = yield "Press enter to continue:"
+                    now_lines = ""
+                    counter = 1
+            if now_lines != "":
+                yield now_lines
+                a = yield "Press enter to continue:"
 
     def show_menu(self):
         menu_str = ""
