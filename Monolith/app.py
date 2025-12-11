@@ -15,7 +15,9 @@ class App:
             2: self.show_category,
             3: self.show_filter,
             4: self.show_by_some,
-            5: self.exit
+            5: self.categories,
+            6: self.statistics,
+            7: self.exit
         }
 
     def run(self):
@@ -28,28 +30,32 @@ class App:
             item = next(gen)
 
             while True:
-                print(item)
+                try:
+                    print(item)
 
-                if type(item) is str and item.endswith(":"):
-                    user_input = input()
-                    try:
-                        item = gen.send(user_input)
-                    except StopIteration:
-                        break
-                else:
-                    try:
-                        item = next(gen)
-                    except StopIteration:
-                        break
+                    if type(item) is str and item.endswith(":"):
+                        user_input = input()
+                        try:
+                            item = gen.send(user_input)
+                        except StopIteration:
+                            break
+                    else:
+                        try:
+                            item = next(gen)
+                        except StopIteration:
+                            break
+                except AppError as e:
+                    print(f"Error: {e}")
 
     def show_all(self):
         with open(self.log_path, 'r') as file:
             yield file.read()
+            a = yield "Press enter to continue:"
 
     def show_category(self):
         category = yield "Enter category of logs you want to see:"
         if category == "":
-            return "No category entered."
+            raise AppError("No category entered.")
         with open(self.log_path, 'r') as file:
             category_lines = "\n"
             for line in file:
@@ -60,11 +66,12 @@ class App:
                 yield "No logs found for that category."
             else:
                 yield category_lines
+                a = yield "Press enter to continue:"
 
     def show_filter(self):
         filter = yield f"Enter filter for which you want to search:"
         if filter == "":
-            yield "No filter entered."
+            raise AppError("No filter entered.")
         with open(self.log_path, 'r') as file:
             filter_lines = "\n"
             for line in file:
@@ -75,6 +82,7 @@ class App:
                 yield "No logs found for that category."
             else:
                 yield filter_lines
+                a = yield "Press enter to continue:"
 
     def show_by_some(self):
         how_many = yield "How many lines at once do you want to see:"
@@ -83,7 +91,7 @@ class App:
             if how_many <= 0:
                 raise ValueError()
         except ValueError:
-            yield "Invalid number of lines, enter a valid number."
+            raise AppError("Invalid number of lines, enter a valid number.")
         with open(self.log_path, 'r') as file:
             counter = 1
             now_lines = "\n"
@@ -98,6 +106,39 @@ class App:
             if now_lines != "":
                 yield now_lines
                 a = yield "Press enter to continue:"
+
+    def categories(self):
+        categories_list = []
+        with open(self.log_path, 'r') as file:
+            for line in file:
+                category = line.split(" ")[0]
+                if category not in categories_list:
+                    categories_list.append(category)
+        if len(categories_list) == 0:
+            yield "No categories found."
+        else:
+            yield "\n".join(categories_list)
+            a = yield "Press enter to continue:"
+
+    def statistics(self):
+        category_dict = {}
+        with open(self.log_path, 'r') as file:
+            for line in file:
+                category = line.split(" ")[0]
+                if category not in category_dict.keys():
+                    category_dict[category] = 1
+                else:
+                    category_dict[category] += 1
+
+        pretty_print = "\n"
+        for key in category_dict.keys():
+            pretty_print += f"{key}: {category_dict[key]} lines \n"
+
+        if pretty_print == "\n":
+            yield "No statistics found."
+        else:
+            yield pretty_print
+            a = yield "Press enter to continue:"
 
     def show_menu(self):
         menu_str = ""
