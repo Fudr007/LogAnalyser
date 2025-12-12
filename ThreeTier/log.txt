@@ -1,0 +1,4 @@
+ERROR something
+INFO blahblah
+WARN too much info
+ERROR something else
