@@ -8,16 +8,17 @@ class AppError(Exception):
 
 class App:
 
-    def __init__(self, log_path):
-        self.log_path = log_path
+    def __init__(self):
+        self.log_path = self.load_config()
         self.actions = {
             1: self.show_all,
             2: self.show_category,
             3: self.show_filter,
             4: self.show_by_some,
-            5: self.categories,
-            6: self.statistics,
-            7: self.exit
+            5: self.show_line,
+            6: self.categories,
+            7: self.statistics,
+            8: self.exit
         }
 
     def run(self):
@@ -25,7 +26,9 @@ class App:
         while True:
             print(self.show_menu())
             choice = int(input("Enter your choice:"))
-
+            if choice not in self.actions.keys():
+                print("Invalid choice.")
+                break
             gen = self.actions[choice]()
             item = next(gen)
 
@@ -107,6 +110,24 @@ class App:
                 yield now_lines
                 a = yield "Press enter to continue:"
 
+    def show_line(self):
+        line_number = yield "Enter line number:"
+        try:
+            line_number = int(line_number)
+            if line_number < 1:
+                raise ValueError()
+        except ValueError:
+            raise AppError("Invalid line number, enter a valid number.")
+
+        with open(self.log_path, 'r') as file:
+            count = 1
+            for line in file:
+                if count == line_number:
+                    yield line
+                    a = yield "Press enter to continue:"
+                    break
+                count += 1
+
     def categories(self):
         categories_list = []
         with open(self.log_path, 'r') as file:
@@ -149,8 +170,7 @@ class App:
     def exit(self):
         sys.exit(0)
 
-    @staticmethod
-    def load_config(path="config.ini"):
+    def load_config(self, path="config.ini"):
         if not os.path.isfile(path):
             raise AppError(f"Config file '{path}' not found.")
 
