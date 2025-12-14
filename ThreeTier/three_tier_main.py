@@ -14,4 +14,5 @@ if __name__ == '__main__':
 
     logic = LogLogic(data)
     ui = UserInterface(logic)
-    ui.run()
+    logic.ui = ui
+    logic.run()

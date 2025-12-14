@@ -18,36 +18,36 @@ class UserInterface:
 
     def run(self):
         print("Welcome to log analyser")
+
+        print(self.print_menu())
+        choice = int(input("Enter your choice:"))
+        if choice not in self.menu.keys():
+            print("Invalid choice.")
+            return
+        try:
+            gen = self.menu[choice]()
+            item = next(gen)
+        except Exception as e:
+            print("Wrong input.")
+            return
+
         while True:
-            print(self.print_menu())
-            choice = int(input("Enter your choice:"))
-            if choice not in self.menu.keys():
-                print("Invalid choice.")
-                break
             try:
-                gen = self.menu[choice]()
-                item = next(gen)
-            except Exception as e:
-                print("Wrong input.")
-                break
+                print(item)
 
-            while True:
-                try:
-                    print(item)
-
-                    if type(item) is str and item.endswith(":"):
-                        user_input = input()
-                        try:
-                            item = gen.send(user_input)
-                        except StopIteration:
-                            break
-                    else:
-                        try:
-                            item = next(gen)
-                        except StopIteration:
-                            break
-                except AppError as e:
-                    print(f"Error: {e}")
+                if type(item) is str and item.endswith(":"):
+                    user_input = input()
+                    try:
+                        item = gen.send(user_input)
+                    except StopIteration:
+                        break
+                else:
+                    try:
+                        item = next(gen)
+                    except StopIteration:
+                        break
+            except AppError as e:
+                print(f"Error: {e}")
 
     def print_all(self):
         yield self.logic.get_all()

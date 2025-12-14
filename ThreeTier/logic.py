@@ -7,6 +7,13 @@ from ThreeTier.data import LogData
 class LogLogic:
     def __init__(self, data_access: LogData):
         self.data = data_access
+        self._is_running = False
+        self.ui = None
+
+    def run(self):
+        self._is_running = True
+        while self._is_running:
+            self.ui.run()
 
     def get_all(self):
         return self.data.read_all()
@@ -98,4 +105,4 @@ class LogLogic:
         return ret_stats
 
     def exit(self):
-        sys.exit(0)
+        self._is_running = False
