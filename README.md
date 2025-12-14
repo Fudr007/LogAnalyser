@@ -8,7 +8,8 @@ Designed to make it easier to extract meaningful information from raw logs, it s
 ## Features
 
 - Load and process text-based log files  
-- Filter logs by keywords or categories 
+- Filter logs by keywords or categories
+- The whole run is based on generators
 - Configuration file
 - Available in 3 architectures designs
   - Monolithic architecture
